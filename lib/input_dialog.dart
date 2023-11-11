@@ -210,19 +210,21 @@ void showNewTaskDialog(BuildContext context) {
                         label: Text(
                           'Goal',
                           style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark
+                            color: selectedTaskType == TaskType.goal
+                                ? Colors.white
+                                : Theme.of(context).brightness == Brightness.dark
                                 ? Colors.white
                                 : Colors.black,
                           ),
                         ),
                         selected: selectedTaskType == TaskType.goal,
                         selectedColor: Theme.of(context).colorScheme.primary,
-                        checkmarkColor: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black,  // This will set the checkmark color
-                        onSelected: (bool selected) {
+                        checkmarkColor: Colors.white, // Checkmark color is always white for visibility
+                        onSelected: (bool isSelected) {
                           setState(() {
-                            selectedTaskType = TaskType.goal;
+                            if (isSelected) {
+                              selectedTaskType = TaskType.goal;
+                            }
                           });
                         },
                       ),
@@ -230,22 +232,25 @@ void showNewTaskDialog(BuildContext context) {
                         label: Text(
                           'Non-Goal',
                           style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark
+                            color: selectedTaskType == TaskType.nonGoal
+                                ? Colors.white
+                                : Theme.of(context).brightness == Brightness.dark
                                 ? Colors.white
                                 : Colors.black,
                           ),
                         ),
                         selected: selectedTaskType == TaskType.nonGoal,
                         selectedColor: Theme.of(context).colorScheme.primary,
-                        checkmarkColor: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black,  // This will set the checkmark color
-                        onSelected: (bool selected) {
+                        checkmarkColor: Colors.white, // Checkmark color is always white for visibility
+                        onSelected: (bool isSelected) {
                           setState(() {
-                            selectedTaskType = TaskType.nonGoal;
+                            if (isSelected) {
+                              selectedTaskType = TaskType.nonGoal;
+                            }
                           });
                         },
                       ),
+
                     ],
                   ),
                   ListTile(
@@ -328,34 +333,34 @@ void showNewRepeatingTaskDialog(BuildContext context) {
             }
           }
 
-          List<Widget> buildIntervalTypeChips() {
-            return IntervalType.values.map((interval) {
-              return ChoiceChip(
-                label: Text(describeEnum(interval).capitalize()),
-                selected: selectedIntervalType == interval,
-                selectedColor: Theme.of(context).colorScheme.primary,
-                onSelected: (bool isSelected) {
-                  setState(() {
-                    if (isSelected) {
-                      selectedIntervalType = interval;
-                    }
-                  });
-                },
-
-                labelStyle: TextStyle(
-                  color: selectedIntervalType == interval
-                      ? Colors.white
-                      : Theme.of(context).colorScheme.onSurface,
-                ),
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.grey[700]
-                    : Colors.grey[300],
-                checkmarkColor: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              );
-            }).toList();
-          }
+          // List<Widget> buildIntervalTypeChips() {
+          //   return IntervalType.values.map((interval) {
+          //     return ChoiceChip(
+          //       label: Text(describeEnum(interval).capitalize()),
+          //       selected: selectedIntervalType == interval,
+          //       selectedColor: Theme.of(context).colorScheme.primary,
+          //       onSelected: (bool isSelected) {
+          //         setState(() {
+          //           if (isSelected) {
+          //             selectedIntervalType = interval;
+          //           }
+          //         });
+          //       },
+          //
+          //       labelStyle: TextStyle(
+          //         color: selectedIntervalType == interval
+          //             ? Colors.white
+          //             : Theme.of(context).colorScheme.onSurface,
+          //       ),
+          //       backgroundColor: Theme.of(context).brightness == Brightness.dark
+          //           ? Colors.grey[700]
+          //           : Colors.grey[300],
+          //       checkmarkColor: Theme.of(context).brightness == Brightness.dark
+          //           ? Colors.white
+          //           : Colors.black,
+          //     );
+          //   }).toList();
+          // }
 
           return AlertDialog(
             title: Text('New Repeating Task'),

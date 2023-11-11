@@ -290,19 +290,16 @@ void showNewTaskDialog(BuildContext context) {
 }
 
 //REPEATING TASK
-// Enums for the repeating task types and intervals
 enum RepeatingTaskType { goal, nonGoal }
 enum IntervalType { days, weeks, months }
 enum WeekDay { mon, tue, wed, thu, fri, sat, sun }
 
-// Extension method to capitalize strings.
 extension StringExtension on String {
   String capitalize() {
     return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
 
-// Function to show the dialog
 void showNewRepeatingTaskDialog(BuildContext context) {
   TextEditingController taskTitleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
@@ -310,67 +307,55 @@ void showNewRepeatingTaskDialog(BuildContext context) {
   TextEditingController dayOfMonthController = TextEditingController();
   RepeatingTaskType selectedTaskType = RepeatingTaskType.goal;
   IntervalType? selectedIntervalType;
-  WeekDay? selectedWeekDay;
+  List<WeekDay> selectedWeekDays = [];
   DateTime? startDate;
   DateTime? endDate;
+
+  StateSetter? dialogSetState;
+
+  Future<void> _selectStartDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: startDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != startDate) {
+      startDate = picked;
+      if (dialogSetState != null) {
+        dialogSetState!(() {}); // Update the UI
+      }
+    }
+  }
+
+  Future<void> _selectEndDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: endDate ?? (startDate ?? DateTime.now()),
+      firstDate: startDate ?? DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != endDate) {
+      endDate = picked;
+      if (dialogSetState != null) {
+        dialogSetState!(() {}); // Update the UI
+      }
+    }
+  }
 
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return StatefulBuilder(
-        builder: (context, setState) {
-          Future<void> _selectStartDate(BuildContext context) async {
-            final DateTime? picked = await showDatePicker(
-              context: context,
-              initialDate: startDate ?? DateTime.now(),
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2101),
-            );
-            if (picked != null && picked != startDate) {
-              setState(() {
-                startDate = picked;
-              });
-            }
-          }
-
-          Future<void> _selectEndDate(BuildContext context) async {
-            final DateTime? picked = await showDatePicker(
-              context: context,
-              initialDate: endDate ?? (startDate ?? DateTime.now()),
-              firstDate: startDate ?? DateTime.now(),
-              lastDate: DateTime(2101),
-            );
-            if (picked != null && picked != endDate) {
-              setState(() {
-                endDate = picked;
-              });
-            }
-          }
-
-          List<DropdownMenuItem<IntervalType>> buildIntervalDropdownItems() {
-            return IntervalType.values.map((interval) {
-              return DropdownMenuItem(
-                value: interval,
-                child: Text(describeEnum(interval).capitalize()),
-              );
-            }).toList();
-          }
-
-          List<DropdownMenuItem<WeekDay>> buildWeekDayDropdownItems() {
-            return WeekDay.values.map((weekDay) {
-              return DropdownMenuItem(
-                value: weekDay,
-                child: Text(describeEnum(weekDay).capitalize()),
-              );
-            }).toList();
-          }
-
+        builder: (BuildContext context, StateSetter setState) {
+          dialogSetState = setState;
           return AlertDialog(
             title: Text('New Repeating Task'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
+                  // Task Title Field
                   TextField(
                     controller: taskTitleController,
                     decoration: InputDecoration(
@@ -379,6 +364,8 @@ void showNewRepeatingTaskDialog(BuildContext context) {
                     ),
                   ),
                   SizedBox(height: 8.0),
+
+                  // Description Field
                   TextField(
                     controller: descriptionController,
                     decoration: InputDecoration(
@@ -387,9 +374,12 @@ void showNewRepeatingTaskDialog(BuildContext context) {
                     ),
                   ),
                   SizedBox(height: 8.0),
+
+                  // Task Type Selection
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
+                      // Goal Chip
                       ChoiceChip(
                         label: Text('Goal'),
                         selected: selectedTaskType == RepeatingTaskType.goal,
@@ -407,9 +397,11 @@ void showNewRepeatingTaskDialog(BuildContext context) {
                         backgroundColor: Theme.of(context).brightness == Brightness.dark
                             ? Colors.grey[700]
                             : Colors.grey[300],
-                        checkmarkColor: Colors.white,  // Checkmark color is always white for visibility
+                        checkmarkColor: Colors.white,
                       ),
                       SizedBox(width: 8.0),
+
+                      // Non-Goal Chip
                       ChoiceChip(
                         label: Text('Non-Goal'),
                         selected: selectedTaskType == RepeatingTaskType.nonGoal,
@@ -427,24 +419,51 @@ void showNewRepeatingTaskDialog(BuildContext context) {
                         backgroundColor: Theme.of(context).brightness == Brightness.dark
                             ? Colors.grey[700]
                             : Colors.grey[300],
-                        checkmarkColor: Colors.white,  // Checkmark color is always white for visibility
+                        checkmarkColor: Colors.white,
                       ),
                     ],
                   ),
                   SizedBox(height: 8.0),
+
+                  // Start Date Picker
                   ListTile(
                     title: Text('Start Date'),
-                    subtitle: Text(startDate == null ? 'Pick a start date' : DateFormat('yyyy-MM-dd').format(startDate!)),
+                    subtitle: Text(
+                      startDate == null
+                          ? 'Pick a start date'
+                          : DateFormat('dd-MM-yyyy').format(startDate!),
+                    ),
                     trailing: Icon(Icons.calendar_today),
                     onTap: () => _selectStartDate(context),
                   ),
+
+
+                  // End Date Picker
                   ListTile(
                     title: Text('End Date'),
-                    subtitle: Text(endDate == null ? 'Pick an end date' : DateFormat('yyyy-MM-dd').format(endDate!)),
+                    subtitle: Text(
+                      endDate == null
+                          ? 'Pick an end date'
+                          : DateFormat('dd-MM-yyyy').format(endDate!),
+                    ),
                     trailing: Icon(Icons.calendar_today),
                     onTap: () => _selectEndDate(context),
                   ),
                   SizedBox(height: 8.0),
+
+                  // Frequency Field
+                  TextField(
+                    controller: frequencyController,
+                    decoration: InputDecoration(
+                      labelText: 'Frequency',
+                      border: OutlineInputBorder(),
+                      hintText: 'e.g., Every 2 days',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: 8.0),
+
+                  // Interval Dropdown
                   DropdownButtonFormField<IntervalType>(
                     decoration: InputDecoration(
                       labelText: 'Interval',
@@ -456,22 +475,50 @@ void showNewRepeatingTaskDialog(BuildContext context) {
                         selectedIntervalType = newValue;
                       });
                     },
-                    items: buildIntervalDropdownItems(),
+                    items: IntervalType.values.map((interval) {
+                      return DropdownMenuItem(
+                        value: interval,
+                        child: Text(interval.toString().split('.').last.capitalize()),
+                      );
+                    }).toList(),
                   ),
-                  if (selectedIntervalType == IntervalType.weeks)
-                    DropdownButtonFormField<WeekDay>(
-                      decoration: InputDecoration(
-                        labelText: 'Day of the Week',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedWeekDay,
-                      onChanged: (WeekDay? newValue) {
-                        setState(() {
-                          selectedWeekDay = newValue;
-                        });
-                      },
-                      items: buildWeekDayDropdownItems(),
+
+                  // Weekday Selection for 'weeks' Interval
+                  if (selectedIntervalType == IntervalType.weeks) ...[
+                    Text('Select Days of the Week'),
+                    Wrap(
+                      spacing: 8.0,
+                      children: WeekDay.values.map((day) {
+                        return FilterChip(
+                          label: Text(day.toString().split('.').last.capitalize()),
+                          selected: selectedWeekDays.contains(day),
+                          onSelected: (bool selected) {
+                            setState(() {
+                              if (selected) {
+                                selectedWeekDays.add(day);
+                              } else {
+                                selectedWeekDays.remove(day);
+                              }
+                            });
+                          },
+                          selectedColor: Theme.of(context).colorScheme.primary,
+                          labelStyle: TextStyle(
+                            color: selectedWeekDays.contains(day)
+                                ? Colors.white
+                                : null,
+                          ),
+                          backgroundColor: selectedWeekDays.contains(day)
+                              ? null
+                              : Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[700]
+                              : Colors.grey[300],
+                          checkmarkColor: Colors.white,
+                        );
+                      }).toList(),
                     ),
+                  ],
+
+                  // Day of Month Field for 'months' Interval
                   if (selectedIntervalType == IntervalType.months)
                     TextField(
                       controller: dayOfMonthController,
@@ -481,35 +528,15 @@ void showNewRepeatingTaskDialog(BuildContext context) {
                         hintText: 'e.g., 15, or 1,15,30',
                       ),
                     ),
-                  if (selectedIntervalType == IntervalType.days)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: TextField(
-                        controller: frequencyController,
-                        decoration: InputDecoration(
-                          labelText: 'Frequency',
-                          border: OutlineInputBorder(),
-                          hintText: 'e.g., Every 2 days',
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
                 ],
               ),
             ),
             actions: <Widget>[
+              // OK Button
               TextButton(
                 child: Text('OK'),
                 onPressed: () {
-                  // Handle the repeating task submission
-                  print('Task Title: ${taskTitleController.text}');
-                  print('Description: ${descriptionController.text}');
-                  print('Start Date: ${startDate?.toIso8601String()}');
-                  print('End Date: ${endDate?.toIso8601String()}');
-                  print('Frequency: ${frequencyController.text}');
-                  print('Interval: ${selectedIntervalType != null ? describeEnum(selectedIntervalType!) : 'None'}');
-                  print('Day of the Week: ${selectedWeekDay != null ? describeEnum(selectedWeekDay!) : 'None'}');
-                  print('Day(s) of the Month: ${dayOfMonthController.text}');
+                  // Collect all the data and use it as needed
                   Navigator.pop(context); // Dismiss the dialog
                 },
               ),
@@ -520,11 +547,3 @@ void showNewRepeatingTaskDialog(BuildContext context) {
     },
   );
 }
-
-
-
-
-
-
-
-

@@ -482,7 +482,7 @@ void showNewRepeatingTaskDialog(BuildContext context) {
                       );
                     }).toList(),
                   ),
-
+                  SizedBox(height: 8.0),
                   // Weekday Selection for 'weeks' Interval
                   if (selectedIntervalType == IntervalType.weeks) ...[
                     Text('Select Days of the Week'),
